@@ -1,13 +1,11 @@
-import { Controller, Body, Param, Delete, Patch, Get, Post, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Body, Param, Delete, Patch, Get, Post, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { buildResponse } from 'src/common/utils/build-response';
-import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
+import { buildResponse } from '../common/utils/build-response';
+import { ValidateObjectIdPipe } from '../common/pipes/validate-object-id.pipe';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from 'src/config/multer.config';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')

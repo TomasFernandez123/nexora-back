@@ -1,10 +1,10 @@
 import { Body, Controller, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { buildResponse } from 'src/common/utils/build-response';
+import { buildResponse } from '../common/utils/build-response';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from 'src/config/multer.config';
+import { multerConfig } from '../config/multer.config';
 
 @Controller('auth')
 export class AuthController {
