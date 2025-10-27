@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { buildResponse } from '../common/utils/build-response';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from '../config/multer.config';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,4 +25,11 @@ export class AuthController {
         const result = await this.authService.login(emailOrUsername, dto.password);
         return buildResponse(true, 'Login successful', result, req);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('authorize')
+    async authorize(@Req() req) {
+        return this.authService.authorize(req.user.id);
+    }
+
 }

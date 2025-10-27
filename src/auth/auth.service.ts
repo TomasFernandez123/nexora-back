@@ -38,4 +38,10 @@ export class AuthService {
         const payload = { sub: userId, role };
         return this.jwtService.signAsync(payload);
     }
+
+    async authorize(userId: string) {
+        const user = await this.usersService.findById(userId);
+        if (!user) throw new UnauthorizedException('User not found');
+        return user;
+    }
 }
