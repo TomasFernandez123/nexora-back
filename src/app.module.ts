@@ -6,7 +6,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 
-const mongoUri = 'mongodb+srv://Tomas:TomasFer12@cluster0.x97pwab.mongodb.net/nexora_user?retryWrites=true&w=majority&appName=Cluster0'
 
 @Module({
   imports: [
@@ -14,7 +13,7 @@ const mongoUri = 'mongodb+srv://Tomas:TomasFer12@cluster0.x97pwab.mongodb.net/ne
       isGlobal: true,
       envFilePath: '.env',
     }),
-    MongooseModule.forRoot(mongoUri),
+    MongooseModule.forRoot(process.env.MONGODB_URI!),
     UsersModule,
     AuthModule
   ],
