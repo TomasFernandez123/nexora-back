@@ -26,8 +26,8 @@ export class AuthController {
         return buildResponse(true, 'Login successful', result, req);
     }
 
-    @UseGuards(JwtAuthGuard)
     @Post('authorize')
+    @UseGuards(JwtAuthGuard)
     async authorize(@Req() req) {
         return this.authService.authorize(req.user.id);
     }
