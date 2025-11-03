@@ -8,7 +8,7 @@ async function bootstrap() {
   const PORT = process.env.PORT || 3000;
   app.enableCors({
     origin: [
-      'http://localhost:4000',
+      'http://localhost:4200',
       'https://nexora.vercel.app',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
