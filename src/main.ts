@@ -9,8 +9,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:4000',
-      'https://nexora.vercel.app'
+      'https://nexora.vercel.app',
     ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
   app.use(cookieParser());
