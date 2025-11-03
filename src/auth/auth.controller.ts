@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -20,11 +21,25 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() dto: LoginDto, @Req() req) {
+    async login(@Body() dto: LoginDto, @Req() req, @Res({ passthrough: true }) res: Response) {
         const emailOrUsername = dto.email || dto.username!;
         const result = await this.authService.login(emailOrUsername, dto.password);
-        return buildResponse(true, 'Login successful', result, req);
+
+        if (result) {
+            res.cookie('jwt', result.token, { httpOnly: true, secure: true, maxAge: 15 * 60 * 1000, sameSite: 'lax' });
+        }
+
+        const { token, ...resultWithoutToken } = result;
+
+        return buildResponse(true, 'Login successful', resultWithoutToken, req);
     }
+
+    @Post('logout')
+    async logout(@Res({ passthrough: true }) res: Response) {
+        res.clearCookie('jwt'); 
+        return { success: true ,message: 'Logout successful' };
+    }
+
 
     @Post('authorize')
     @UseGuards(JwtAuthGuard)

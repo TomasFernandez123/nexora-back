@@ -15,9 +15,7 @@ export class AuthService {
     async register(dto: CreateUserDto) {
         const user = await this.usersService.create(dto);
 
-        const token = await this.generateToken(user._id, user.role);
-
-        return { user, token };
+        return { user };
     }
 
     async login(emailOrUsername: string, password: string) {
@@ -34,7 +32,7 @@ export class AuthService {
         return { user: userData, token };
     }
 
-    private async generateToken(userId: string, role: string) {
+    private async generateToken(userId: string, role: string): Promise<string> {
         const payload = { sub: userId, role };
         return this.jwtService.signAsync(payload);
     }
