@@ -26,7 +26,7 @@ export class AuthController {
         const result = await this.authService.login(emailOrUsername, dto.password);
 
         if (result) {
-            res.cookie('jwt', result.token, { httpOnly: true, secure: true, maxAge: 15 * 60 * 1000, sameSite: 'none' });
+            res.cookie('jwt', result.token, { httpOnly: true, secure: true, maxAge: 15 * 60 * 1000, sameSite: 'lax' });
         }
 
         const { token, ...resultWithoutToken } = result;
