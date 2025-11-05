@@ -11,8 +11,6 @@ export class UsersService {
     constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
     async create(dto: CreateUserDto): Promise<Record<string, any>> {
-        console.log('DTO recibido:', dto);
-
         const emailExists = await this.userModel.findOne({ email: dto.email });
         if (emailExists) {
             throw new ConflictException(`Email ${dto.email} is already in use`);

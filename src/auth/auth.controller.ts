@@ -30,7 +30,6 @@ export class AuthController {
                 { 
                     httpOnly: true, 
                     secure: true, 
-                    maxAge: 15 * 60 * 1000, 
                     sameSite: 'none',
                     path: '/'
                 });
@@ -46,7 +45,6 @@ export class AuthController {
         res.clearCookie('jwt', { 
                     httpOnly: true, 
                     secure: true, 
-                    maxAge: 15 * 60 * 1000, 
                     sameSite: 'none',
                     path: '/'
                 }); 
