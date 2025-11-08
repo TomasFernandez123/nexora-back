@@ -12,11 +12,16 @@ export class UsersService {
 
     async create(dto: CreateUserDto): Promise<Record<string, any>> {
         const emailExists = await this.userModel.findOne({ email: dto.email });
+        const usernameExists = await this.userModel.findOne({ username: dto.username });
+        
+        if (emailExists && usernameExists) {
+            throw new ConflictException(`Email ${dto.email} and Username ${dto.username} are already in use`);
+        }
+        
         if (emailExists) {
             throw new ConflictException(`Email ${dto.email} is already in use`);
         }
 
-        const usernameExists = await this.userModel.findOne({ username: dto.username });
         if (usernameExists) {
             throw new ConflictException(`Username ${dto.username} is already in use`);
         }
