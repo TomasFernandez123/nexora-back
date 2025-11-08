@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -6,14 +6,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerPostConfig } from 'src/config/multer.config';
 import { RolesGuard } from 'src/users/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { QueryPostsDto } from './dto/query-post.dto';
 
 @Controller('posts')
 export class PostsController {
     constructor(private readonly postsService: PostsService) {}
 
     @Get()
-    async getAllPosts() {
-        return this.postsService.getAllPosts();
+    async getAllPosts(@Query() query: QueryPostsDto) {
+        return this.postsService.getAllPosts(query);
     }
 
     @Get(':id')
