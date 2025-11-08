@@ -16,7 +16,7 @@ export class PostsService {
     }
 
     async getAllPosts(): Promise<Post[]> {
-        return await this.postModel.find();
+        return await this.postModel.find({ deleted: false }).populate('author', 'username photo').sort({ createdAt: -1 });
     }
 
     async getPostById(id: string): Promise<Post | null> {
@@ -27,7 +27,7 @@ export class PostsService {
     }
 
     async delete(id: string): Promise<Post | null> {
-        const result = await this.postModel.findByIdAndDelete(id);
+        const result = await this.postModel.findByIdAndUpdate(id, { deleted: true }, { new: true });
         if (!result) throw new NotFoundException(`Post with ID ${id} not found`);
         return result;
     }
