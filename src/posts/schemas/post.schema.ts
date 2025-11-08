@@ -1,26 +1,37 @@
-import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose'
-import { Document, Types } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-@Schema({ timestamps: true}) 
+@Schema({ timestamps: true })
 export class Post extends Document {
-@Prop({ required: true, trim: true })
-  titulo: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  author: Types.ObjectId;
 
   @Prop({ required: true, trim: true })
-  mensaje: string;
+  title: string;
 
-  @Prop()
-  imagenUrl?: string;
+  @Prop({ required: true, trim: true })
+  message: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Usuario', required: true })
-  usuario: Types.ObjectId;
+  @Prop({ type: String, default: null })
+  photo?: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Usuario' }], default: [] })
-  meGusta: Types.ObjectId[];
-
-  @Prop({ default: false })
-  eliminado: boolean;
+  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  likes: Types.ObjectId[];
 
   @Prop({ default: 0 })
-  cantidadMeGusta: number;
+  likeCount: number;
+
+  @Prop({ default: false })
+  deleted: boolean;
+
+  @Prop({ default: 0 })
+  commentCount: number;
+
+  @Prop({ default: 0 })
+  shareCount: number; 
+
+  @Prop({ default: 0 })
+  saveCount: number; 
 }
+
+export const PostSchema = SchemaFactory.createForClass(Post);

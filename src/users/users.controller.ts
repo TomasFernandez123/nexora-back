@@ -21,29 +21,28 @@ export class UsersController {
         const users = await this.usersService.findAll();
 
         if(users.length === 0) {
-            return buildResponse(true, 'No users found', [], req);
+            return buildResponse(true, 'No users found', []);
         }
 
-        return buildResponse(true, 'Users retrieved successfully', users, req);
+        return buildResponse(true, 'Users retrieved successfully', users);
     }
 
     @Get(':id')
     async findById(@Param('id', ValidateObjectIdPipe) id: string, @Req() req) {
         const { user } = req;
 
-        console.log(user);
         if (user.role !== 'admin' && user.id !== id) {
             throw new ForbiddenException('You can only access your own profile');
         }
 
         const foundUser = await this.usersService.findById(id);
-        return buildResponse(true, 'User retrieved successfully', foundUser, req);
+        return buildResponse(true, 'User retrieved successfully', foundUser);
     }
 
     @Post()
     async createUser(@Body() dto: CreateUserDto, @Req() req) {
         const user = await this.usersService.create(dto);
-        return buildResponse(true, 'User created successfully', user, req);
+        return buildResponse(true, 'User created successfully', user);
     }
 
     @Patch(':id')
@@ -54,7 +53,7 @@ export class UsersController {
         }
 
         const foundUser = await this.usersService.update(id, dto);
-        return buildResponse(true, 'User updated successfully', foundUser, req);
+        return buildResponse(true, 'User updated successfully', foundUser);
     }
 
     @Delete(':id')
@@ -65,6 +64,6 @@ export class UsersController {
         }
 
         const foundUser = await this.usersService.remove(id);
-        return buildResponse(true, 'User deleted successfully', foundUser, req);
+        return buildResponse(true, 'User deleted successfully', foundUser);
     }
 }
