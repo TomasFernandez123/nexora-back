@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -7,6 +7,7 @@ import { multerPostConfig } from 'src/config/multer.config';
 import { RolesGuard } from 'src/users/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { QueryPostsDto } from './dto/query-post.dto';
+import { buildResponse } from 'src/common/utils/build-response';
 
 @Controller('posts')
 export class PostsController {
@@ -28,7 +29,8 @@ export class PostsController {
     async createPost(@Body() dto: CreatePostDto, @UploadedFile() file: Express.Multer.File, @Req() req) {
         const imageUrl = file?.path;
         const userId = req.user?.id;
-        return this.postsService.createPost({...dto, photo: imageUrl}, userId);
+        const result = await this.postsService.createPost({...dto, photo: imageUrl}, userId);
+        return buildResponse('Post created successfully', result);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -42,7 +44,16 @@ export class PostsController {
             throw new ForbiddenException('You can only delete your own posts');
         }
 
-        return this.postsService.delete(id);
+        const result = await this.postsService.delete(id);
+        return buildResponse('Post deleted successfully', result);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':id/like')
+    async likePost(@Param('id', ValidateObjectIdPipe) id: string, @Req() req) {
+        const userId = req.user.id;
+        const post = await this.postsService.likePost(id, userId);
+        return buildResponse('Post like status updated', post);
     }
 
 }

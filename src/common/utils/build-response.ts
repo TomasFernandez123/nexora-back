@@ -1,10 +1,7 @@
-import { Request } from 'express';
 
-export function buildResponse( success: boolean, message: string, data: any = null) {
+export function buildResponse(message: string, data: any = null) {
   return {
-    success,
     message,
     data,
-    timestamp: new Date().toISOString(),
   };
 }

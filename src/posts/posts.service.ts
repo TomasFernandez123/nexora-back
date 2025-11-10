@@ -4,11 +4,13 @@ import { Model, SortOrder } from 'mongoose';
 import { Post } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { QueryPostsDto } from './dto/query-post.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PostsService {
-
-    constructor(@InjectModel(Post.name) private postModel: Model<Post>) {}
+    constructor(
+        private readonly userService: UsersService,
+        @InjectModel(Post.name) private postModel: Model<Post>) {}
 
     async createPost(dto: CreatePostDto, authorId: string): Promise<Post> {
         const post = await this.postModel.create({...dto, author: authorId});
@@ -16,7 +18,7 @@ export class PostsService {
         return post.populate('author', 'username photo');
     }
 
-    async getAllPosts(query: QueryPostsDto): Promise<Post[]> {
+    async getAllPosts(query: QueryPostsDto) {
         const filters: any = { deleted: false };
 
         if (query.userId) {
@@ -31,12 +33,16 @@ export class PostsService {
         const limit = Number(query.limit) || 10;
         const offset = Number(query.offset) || 0;
 
-        return await this.postModel
+        const total = await this.postModel.countDocuments(filters);
+
+        const posts = await this.postModel
             .find(filters)
             .populate('author', 'username photo')
             .sort(sort)
             .skip(offset)
             .limit(limit);
+
+        return { total, limit, offset, posts };
     }
 
     async getPostById(id: string): Promise<Post | null> {
@@ -51,4 +57,24 @@ export class PostsService {
         if (!result) throw new NotFoundException(`Post with ID ${id} not found`);
         return result;
     }
+
+    async likePost(postId: string, userId: string) {
+        const post = await this.postModel.findOne({ _id: postId, likes: userId });
+
+        if (post) {
+            return this.postModel.findByIdAndUpdate(
+            postId,
+            { $pull: { likes: userId }, $inc: { likeCount: -1 } },
+            { new: true }
+            ).populate('author', 'username photo');
+        } else {
+            return this.postModel.findByIdAndUpdate(
+            postId,
+            { $addToSet: { likes: userId }, $inc: { likeCount: 1 } },
+            { new: true }
+            ).populate('author', 'username photo');
+        }
+    }
+
+
 }

@@ -17,7 +17,7 @@ export class AuthController {
     async register(@Body() dto: CreateUserDto, @Req() req, @UploadedFile() file: Express.Multer.File) {
         const imageUrl = file.path;
         const result = await this.authService.register({...dto, photo: imageUrl});
-        return buildResponse(true, 'Registration successful', result);
+        return buildResponse('Registration successful', result);
     }
 
     @Post('login')
@@ -37,7 +37,7 @@ export class AuthController {
 
         const { token, ...resultWithoutToken } = result;
 
-        return buildResponse(true, 'Login successful', resultWithoutToken);
+        return buildResponse('Login successful', resultWithoutToken);
     }
 
     @Post('logout')

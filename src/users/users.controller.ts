@@ -21,10 +21,10 @@ export class UsersController {
         const users = await this.usersService.findAll();
 
         if(users.length === 0) {
-            return buildResponse(true, 'No users found', []);
+            return buildResponse('No users found', []);
         }
 
-        return buildResponse(true, 'Users retrieved successfully', users);
+        return buildResponse('Users retrieved successfully', users);
     }
 
     @Get(':id')
@@ -36,13 +36,13 @@ export class UsersController {
         }
 
         const foundUser = await this.usersService.findById(id);
-        return buildResponse(true, 'User retrieved successfully', foundUser);
+        return buildResponse('User retrieved successfully', foundUser);
     }
 
     @Post()
     async createUser(@Body() dto: CreateUserDto, @Req() req) {
         const user = await this.usersService.create(dto);
-        return buildResponse(true, 'User created successfully', user);
+        return buildResponse('User created successfully', user);
     }
 
     @Patch(':id')
@@ -53,7 +53,7 @@ export class UsersController {
         }
 
         const foundUser = await this.usersService.update(id, dto);
-        return buildResponse(true, 'User updated successfully', foundUser);
+        return buildResponse('User updated successfully', foundUser);
     }
 
     @Delete(':id')
@@ -64,6 +64,6 @@ export class UsersController {
         }
 
         const foundUser = await this.usersService.remove(id);
-        return buildResponse(true, 'User deleted successfully', foundUser);
+        return buildResponse('User deleted successfully', foundUser);
     }
 }
