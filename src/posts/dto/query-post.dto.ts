@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsIn, IsNumberString } from 'class-validator';
+import { IsOptional, IsString, IsIn, IsNumberString, IsBooleanString } from 'class-validator';
 
 export class QueryPostsDto {
   @IsOptional()
@@ -16,4 +16,12 @@ export class QueryPostsDto {
   @IsOptional()
   @IsNumberString()
   offset?: string;
+
+  @IsOptional()
+  @IsBooleanString()
+  showDeleted?: string; 
+  
+  @IsOptional()
+  @IsBooleanString()
+  userName?: string; 
 }

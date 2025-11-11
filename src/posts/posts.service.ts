@@ -21,10 +21,18 @@ export class PostsService {
     }
 
     async getAllPosts(query: QueryPostsDto) {
-        const filters: any = { deleted: false };
+        const filters: any = {};
+
+        if (!query.showDeleted) {
+            filters.deleted = false;
+        }
 
         if (query.userId) {
             filters.author = query.userId;
+        }
+
+        if (query.userName) {
+            filters['author.username'] = query.userName;
         }
 
         const sort: Record<string, SortOrder> =
