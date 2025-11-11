@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/users/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { QueryPostsDto } from './dto/query-post.dto';
 import { buildResponse } from 'src/common/utils/build-response';
+import { CreateCommentDto } from './dto/create-comment';
 
 @Controller('posts')
 export class PostsController {
@@ -54,6 +55,14 @@ export class PostsController {
         const userId = req.user.id;
         const post = await this.postsService.likePost(id, userId);
         return buildResponse('Post like status updated', post);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post(':id/comments')
+    async addComment(@Param('id', ValidateObjectIdPipe) id: string, @Body() dto: CreateCommentDto, @Req() req) {
+        const userId = req.user.id;
+        const post = await this.postsService.addComment(id, userId, dto);
+        return buildResponse('Comment added successfully', post);
     }
 
 }

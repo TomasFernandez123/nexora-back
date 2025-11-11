@@ -5,11 +5,11 @@ import { Post } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { QueryPostsDto } from './dto/query-post.dto';
 import { UsersService } from 'src/users/users.service';
+import { CreateCommentDto } from './dto/create-comment';
 
 @Injectable()
 export class PostsService {
     constructor(
-        private readonly userService: UsersService,
         @InjectModel(Post.name) private postModel: Model<Post>) {}
 
     async createPost(dto: CreatePostDto, authorId: string): Promise<Post> {
@@ -74,6 +74,22 @@ export class PostsService {
             { new: true }
             ).populate('author', 'username photo');
         }
+    }
+
+    async addComment(postId: string, userId: string, dto: CreateCommentDto) {
+        const post = await this.postModel.findById(postId);
+        if (!post) throw new NotFoundException('Post not found');
+
+        const newComment = {
+            author: userId as any,
+            text: dto.text,
+            createdAt: new Date(),
+        };
+
+        post.comments.push(newComment);
+        await post.save();
+
+        return post.populate('author', 'username photo');
     }
 
 

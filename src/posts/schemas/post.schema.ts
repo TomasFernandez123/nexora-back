@@ -24,6 +24,20 @@ export class Post extends Document {
   @Prop({ default: false })
   deleted: boolean;
 
+  @Prop([
+    {
+      _id: false,
+      author: { type: Types.ObjectId, ref: 'User', required: true },
+      text: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ])
+  comments: {
+    author: Types.ObjectId;
+    text: string;
+    createdAt: Date;
+  }[];
+
   @Prop({ default: 0 })
   commentCount: number;
 
