@@ -96,6 +96,7 @@ export class PostsService {
         };
 
         post.comments.push(newComment);
+        post.commentCount = (post.commentCount || 0) + 1;
         await post.save();
 
         return post.populate([
