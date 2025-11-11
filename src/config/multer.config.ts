@@ -19,10 +19,14 @@ export const multerPostConfig = {
   storage: new CloudinaryStorage({
     cloudinary,
     params: async (req, file) => {
+      const isVideo = file.mimetype.startsWith('video/');
       return {
         folder: 'nexora/posts',
+        resource_type: isVideo ? 'video' : 'image',
         format: file.mimetype.split('/')[1],
-        transformation: [{ width: 500, height: 500, crop: 'limit' }],
+        transformation: !isVideo 
+          ? [{ width: 500, height: 500, crop: 'limit' }] 
+          : undefined,
         public_id: `${Date.now()}-${file.originalname.split('.')[0]}`, 
       };
     },

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -9,6 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { QueryPostsDto } from './dto/query-post.dto';
 import { buildResponse } from 'src/common/utils/build-response';
 import { CreateCommentDto } from './dto/create-comment';
+import { FileSizeFilter } from 'src/common/utils/file-size.filters';
 
 @Controller('posts')
 export class PostsController {
@@ -26,11 +27,18 @@ export class PostsController {
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Post()
-    @UseInterceptors(FileInterceptor('photo', multerPostConfig))
+    @UseFilters(FileSizeFilter)
+    @UseInterceptors(
+        FileInterceptor('photo', {
+            storage: multerPostConfig.storage,
+            limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+        }),
+    )
     async createPost(@Body() dto: CreatePostDto, @UploadedFile() file: Express.Multer.File, @Req() req) {
         const imageUrl = file?.path;
         const userId = req.user?.id;
-        const result = await this.postsService.createPost({...dto, photo: imageUrl}, userId);
+        const isVideo = file?.mimetype?.startsWith('video/');
+        const result = await this.postsService.createPost({...dto, photo: imageUrl, mediaType: isVideo ? 'video' : 'image',}, userId);
         return buildResponse('Post created successfully', result);
     }
 

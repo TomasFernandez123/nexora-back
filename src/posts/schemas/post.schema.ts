@@ -15,6 +15,9 @@ export class Post extends Document {
   @Prop({ type: String, default: null })
   photo?: string;
 
+  @Prop()
+  mediaType: 'image' | 'video';
+
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   likes: Types.ObjectId[];
 

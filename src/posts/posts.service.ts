@@ -4,7 +4,6 @@ import { Model, SortOrder } from 'mongoose';
 import { Post } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { QueryPostsDto } from './dto/query-post.dto';
-import { UsersService } from 'src/users/users.service';
 import { CreateCommentDto } from './dto/create-comment';
 
 @Injectable()

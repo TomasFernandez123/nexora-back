@@ -14,4 +14,8 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   photo?: string;
+
+  @IsOptional()
+  @IsString()
+  mediaType?: 'image' | 'video';
 }
