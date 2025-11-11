@@ -3,13 +3,13 @@ import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerPostConfig } from 'src/config/multer.config';
-import { RolesGuard } from 'src/users/guards/role.guard';
+import { multerPostConfig } from '../config/multer.config';
+import { RolesGuard } from '../users/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { QueryPostsDto } from './dto/query-post.dto';
-import { buildResponse } from 'src/common/utils/build-response';
+import { buildResponse } from '../common/utils/build-response';
 import { CreateCommentDto } from './dto/create-comment';
-import { FileSizeFilter } from 'src/common/utils/file-size.filters';
+import { FileSizeFilter } from '../common/utils/file-size.filters';
 
 @Controller('posts')
 export class PostsController {
