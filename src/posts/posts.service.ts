@@ -15,7 +15,10 @@ export class PostsService {
     async createPost(dto: CreatePostDto, authorId: string): Promise<Post> {
         const post = await this.postModel.create({...dto, author: authorId});
 
-        return post.populate('author', 'username photo');
+        return post.populate([
+            { path: 'author', select: 'username photo' },
+            { path: 'comments.author', select: 'username photo' }
+        ]);
     }
 
     async getAllPosts(query: QueryPostsDto) {
@@ -37,7 +40,10 @@ export class PostsService {
 
         const posts = await this.postModel
             .find(filters)
-            .populate('author', 'username photo')
+            .populate([
+                { path: 'author', select: 'username photo' },
+                { path: 'comments.author', select: 'username photo' }
+            ])
             .sort(sort)
             .skip(offset)
             .limit(limit);
@@ -49,7 +55,10 @@ export class PostsService {
         const post = await this.postModel.findById(id);
         if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
 
-        return post.populate('author', 'username photo');
+        return post.populate([
+            { path: 'author', select: 'username photo' },
+            { path: 'comments.author', select: 'username photo' }
+        ]);
     }
 
     async delete(id: string): Promise<Post | null> {
@@ -89,7 +98,10 @@ export class PostsService {
         post.comments.push(newComment);
         await post.save();
 
-        return post.populate('author', 'username photo');
+        return post.populate([
+            { path: 'author', select: 'username photo' },
+            { path: 'comments.author', select: 'username photo' }
+        ]);
     }
 
 
