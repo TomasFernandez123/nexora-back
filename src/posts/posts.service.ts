@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, SortOrder } from 'mongoose';
+import mongoose, { Model, SortOrder } from 'mongoose';
 import { Post } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { QueryPostsDto } from './dto/query-post.dto';
 import { CreateCommentDto } from './dto/create-comment';
+import { User } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class PostsService {
     constructor(
-        @InjectModel(Post.name) private postModel: Model<Post>) {}
+        @InjectModel(Post.name) private postModel: Model<Post>,
+        @InjectModel(User.name) private userModel: Model<User>,
+    ) {}
 
     async createPost(dto: CreatePostDto, authorId: string): Promise<Post> {
         const post = await this.postModel.create({...dto, author: authorId});
@@ -32,7 +35,17 @@ export class PostsService {
         }
 
         if (query.userName) {
-            filters['author.username'] = query.userName;
+            const users = await this.userModel.find({
+                username: { $regex: query.userName, $options: 'i' },
+            }).select('_id');
+
+            const userIds = users.map((u) => (u._id as mongoose.Types.ObjectId).toString());
+
+            if (userIds.length > 0) {
+                filters.author = { $in: userIds };
+            } else {
+                return { total: 0, limit: Number(query.limit) || 10, offset: 0, posts: [] };
+            }
         }
 
         const sort: Record<string, SortOrder> =

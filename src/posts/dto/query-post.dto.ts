@@ -22,6 +22,6 @@ export class QueryPostsDto {
   showDeleted?: string; 
   
   @IsOptional()
-  @IsBooleanString()
+  @IsString()
   userName?: string; 
 }
