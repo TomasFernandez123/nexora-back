@@ -49,7 +49,7 @@ export class PostsController {
 
         const post = await this.postsService.getPostById(id);
 
-        if (user.role !== 'admin' && user.id !== post?.author.toString()) {
+        if (user.role !== 'admin' && user.id.toString() !== post?.author._id.toString()) {
             throw new ForbiddenException('You can only delete your own posts');
         }
 
