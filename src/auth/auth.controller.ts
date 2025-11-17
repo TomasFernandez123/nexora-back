@@ -32,7 +32,7 @@ export class AuthController {
                     secure: true, 
                     sameSite: 'none',
                     path: '/',
-                    maxAge: 15 * 60 * 1000, // 15 minutes
+                    maxAge: 1 * 60 * 1000, // 15 minutes
                 });
         }
 
@@ -48,7 +48,7 @@ export class AuthController {
                     secure: true, 
                     sameSite: 'none',
                     path: '/',
-                    maxAge: 15 * 60 * 1000, // 15 minutes
+                    maxAge: 1 * 60 * 1000, // 15 minutes
                 }); 
         return { success: true ,message: 'Logout successful' };
     }
@@ -70,7 +70,7 @@ export class AuthController {
             secure: true,
             sameSite: 'none',
             path: '/',
-            maxAge: 15 * 60 * 1000
+            maxAge: 1 * 60 * 1000
         });
 
         return buildResponse('Token refreshed successfully', result);
