@@ -33,12 +33,17 @@ export class AuthService {
 
     private async generateToken(userId: string, role: string): Promise<string> {
         const payload = { sub: userId, role };
-        return this.jwtService.signAsync(payload);
+        return this.jwtService.signAsync(payload, { expiresIn: '15m' });
     }
 
     async authorize(userId: string) {
         const user = await this.usersService.findById(userId);
         if (!user) throw new UnauthorizedException('User not found');
         return user;
+    }
+
+    async refreshToken(userId: string, role: string) {
+        const token = await this.generateToken(userId, role);
+        return { token };
     }
 }

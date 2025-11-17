@@ -14,14 +14,14 @@ export class AuthController {
 
     @Post('register')
     @UseInterceptors(FileInterceptor('photo', multerUserConfig))
-    async register(@Body() dto: CreateUserDto, @Req() req, @UploadedFile() file: Express.Multer.File) {
+    async register(@Body() dto: CreateUserDto, @UploadedFile() file: Express.Multer.File) {
         const imageUrl = file.path;
         const result = await this.authService.register({...dto, photo: imageUrl});
         return buildResponse('Registration successful', result);
     }
 
     @Post('login')
-    async login(@Body() dto: LoginDto, @Req() req, @Res({ passthrough: true }) res: Response) {
+    async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
         const emailOrUsername = dto.email || dto.username!;
         const result = await this.authService.login(emailOrUsername, dto.password);
 
@@ -31,7 +31,8 @@ export class AuthController {
                     httpOnly: true, 
                     secure: true, 
                     sameSite: 'none',
-                    path: '/'
+                    path: '/',
+                    maxAge: 15 * 60 * 1000, // 15 minutes
                 });
         }
 
@@ -46,7 +47,8 @@ export class AuthController {
                     httpOnly: true, 
                     secure: true, 
                     sameSite: 'none',
-                    path: '/'
+                    path: '/',
+                    maxAge: 15 * 60 * 1000, // 15 minutes
                 }); 
         return { success: true ,message: 'Logout successful' };
     }
@@ -56,6 +58,22 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     async authorize(@Req() req) {
         return this.authService.authorize(req.user.id);
+    }
+
+    @Post('refresh-token')
+    @UseGuards(JwtAuthGuard)
+    async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+        const result = await this.authService.refreshToken(req.user.id, req.user.role);
+
+        res.cookie('jwt', result.token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
+            maxAge: 15 * 60 * 1000
+        });
+
+        return buildResponse('Token refreshed successfully', result);
     }
 
 }

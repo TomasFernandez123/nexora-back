@@ -31,7 +31,7 @@ export class PostsController {
     @UseInterceptors(
         FileInterceptor('photo', {
             storage: multerPostConfig.storage,
-            limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+            limits: { fileSize: 20 * 1024 * 1024 },
         }),
     )
     async createPost(@Body() dto: CreatePostDto, @UploadedFile() file: Express.Multer.File, @Req() req) {
