@@ -99,18 +99,13 @@ export class PostsService {
     }
 
     async getPostById(id: string, commentLimit = 10, commentOffset = 0) {
-        const post = await this.postModel.findById(id).populate('author', 'username photo');
+        const post = await this.postModel.findById(id).populate('author', 'username photo').populate('comments.author', 'username photo');
         if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
 
         const postObj = post.toObject();
         const totalComments = postObj.comments.length || 0;
         const paginatedComments = postObj.comments
             ?.slice(commentOffset, commentOffset + commentLimit) || [];
-
-        await this.userModel.populate(postObj, {
-            path: 'author',
-            select: 'username photo'
-        })
 
         return {
             ...postObj,
