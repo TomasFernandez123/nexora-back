@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -21,7 +21,7 @@ export class PostsController {
     }
 
     @Get(':id')
-    async getPostById(@Param('id', ValidateObjectIdPipe) id: string, @Query('commentLimit') commentLimit?: number, @Query('commentOffset') commentOffset?: number) {
+    async getPostById(@Param('id', ValidateObjectIdPipe) id: string, @Query('commentLimit', ParseIntPipe) commentLimit?: number, @Query('commentOffset', ParseIntPipe) commentOffset?: number) {
         return this.postsService.getPostById(id, commentLimit, commentOffset);
     }
 
