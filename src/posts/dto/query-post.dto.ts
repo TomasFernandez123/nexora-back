@@ -24,4 +24,12 @@ export class QueryPostsDto {
   @IsOptional()
   @IsString()
   userName?: string; 
+
+  @IsOptional()
+  @IsNumberString()
+  commentLimit?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  commentOffset?: string;
 }

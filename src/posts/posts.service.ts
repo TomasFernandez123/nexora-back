@@ -55,6 +55,8 @@ export class PostsService {
 
         const limit = Number(query.limit) || 10;
         const offset = Number(query.offset) || 0;
+        const commentLimit = Number(query.commentLimit) || 0;
+        const commentOffset = Number(query.commentOffset) || 0;
 
         const total = await this.postModel.countDocuments(filters);
 
@@ -62,23 +64,64 @@ export class PostsService {
             .find(filters)
             .populate([
                 { path: 'author', select: 'username photo' },
-                { path: 'comments.author', select: 'username photo' }
             ])
             .sort(sort)
             .skip(offset)
             .limit(limit);
 
-        return { total, limit, offset, posts };
+        const postsWithLimitedComments = posts.map(post => {
+            const postObj = post.toObject();
+            const totalComments = postObj.comments.length || 0;
+            const paginatedComments = postObj.comments
+                ?.slice(commentOffset, commentOffset + commentLimit)
+                .map(comment => ({
+                    ...comment
+                })) || [];
+            
+            return {
+                ...postObj,
+                comments: paginatedComments,
+                commentsPagination: {
+                    total: totalComments,
+                    limit: commentLimit,
+                    offset: commentOffset,
+                    hasMore: commentOffset + commentLimit < totalComments
+                }
+            }
+        });
+
+        await this.userModel.populate(postsWithLimitedComments, {
+            path: 'comments.author',
+            select: 'username photo'
+        });
+
+        return { total, limit, offset, posts: postsWithLimitedComments };
     }
 
-    async getPostById(id: string): Promise<Post | null> {
-        const post = await this.postModel.findById(id);
+    async getPostById(id: string, commentLimit = 10, commentOffset = 0) {
+        const post = await this.postModel.findById(id).populate('author', 'username photo');
         if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
 
-        return post.populate([
-            { path: 'author', select: 'username photo' },
-            { path: 'comments.author', select: 'username photo' }
-        ]);
+        const postObj = post.toObject();
+        const totalComments = postObj.comments.length || 0;
+        const paginatedComments = postObj.comments
+            ?.slice(commentOffset, commentOffset + commentLimit) || [];
+
+        await this.userModel.populate(postObj, {
+            path: 'author',
+            select: 'username photo'
+        })
+
+        return {
+            ...postObj,
+            comments: paginatedComments,
+            commentsPagination: {
+                total: totalComments,
+                limit: commentLimit,
+                offset: commentOffset,
+                hasMore: commentOffset + commentLimit < totalComments
+            }
+        };
     }
 
     async delete(id: string): Promise<Post | null> {

@@ -21,8 +21,8 @@ export class PostsController {
     }
 
     @Get(':id')
-    async getPostById(@Param('id', ValidateObjectIdPipe) id: string) {
-        return this.postsService.getPostById(id);
+    async getPostById(@Param('id', ValidateObjectIdPipe) id: string, @Query('commentLimit') commentLimit?: number, @Query('commentOffset') commentOffset?: number) {
+        return this.postsService.getPostById(id, commentLimit, commentOffset);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)

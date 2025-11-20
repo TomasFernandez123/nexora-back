@@ -33,7 +33,7 @@ export class AuthService {
 
     private async generateToken(userId: string, role: string): Promise<string> {
         const payload = { sub: userId, role };
-        return this.jwtService.signAsync(payload, { expiresIn: '15m' });
+        return this.jwtService.signAsync(payload);
     }
 
     async authorize(userId: string) {
