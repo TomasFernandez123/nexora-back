@@ -78,8 +78,6 @@ export class PostsController {
     @UseGuards(AuthGuard('jwt'))
     @Patch(':postId/comments/:commentId')
     async updateComment(@Param('postId', ValidateObjectIdPipe) postId: string, @Param('commentId', ValidateObjectIdPipe) commentId: string, @Body() dto: UpdateCommentDto, @Req() req) {
-        console.log('Updating comment with DTO:', dto);
-        console.log('Post ID:', postId, 'Comment ID:', commentId);
         const userId = req.user.id;
         const post = await this.postsService.updateComment(postId, commentId, userId, dto);
         return buildResponse('Comment updated successfully', post);

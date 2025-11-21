@@ -165,16 +165,14 @@ export class PostsService {
     }
 
     async updateComment(postId: string, commentId: string, userId: string, dto: UpdateCommentDto) {
-        // Primero buscar SIN populate
         const post = await this.postModel.findById(postId);
         
         if (!post) throw new NotFoundException('Post not found');
 
-        const comment: any = post.comments.find((c: any) => console.log(c._id.toString(), commentId));
+        const comment: any = post.comments.find((c: any) => c._id.toString() === commentId);
 
         if (!comment) throw new NotFoundException('Comment not found');
 
-        // Comparar el author como string (antes del populate es un ObjectId)
         if (userId.toString() !== comment.author.toString()) {
             throw new UnauthorizedException('You can only edit your own comments');
         }
@@ -182,7 +180,6 @@ export class PostsService {
         comment.text = dto.text;
         await post.save();
 
-        // DESPUÉS hacer el populate para devolver
         return post.populate([
             { path: 'author', select: 'username photo' },
             { path: 'comments.author', select: 'username photo' }
