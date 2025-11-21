@@ -10,6 +10,7 @@ import { QueryPostsDto } from './dto/query-post.dto';
 import { buildResponse } from '../common/utils/build-response';
 import { CreateCommentDto } from './dto/create-comment';
 import { FileSizeFilter } from '../common/utils/file-size.filters';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -71,6 +72,17 @@ export class PostsController {
         const userId = req.user.id;
         const post = await this.postsService.addComment(id, userId, dto);
         return buildResponse('Comment added successfully', post);
+    }
+
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':postId/comments/:commentId')
+    async updateComment(@Param('postId', ValidateObjectIdPipe) postId: string, @Param('commentId', ValidateObjectIdPipe) commentId: string, @Body() dto: UpdateCommentDto, @Req() req) {
+        console.log('Updating comment with DTO:', dto);
+        console.log('Post ID:', postId, 'Comment ID:', commentId);
+        const userId = req.user.id;
+        const post = await this.postsService.updateComment(postId, commentId, userId, dto);
+        return buildResponse('Comment updated successfully', post);
     }
 
 }

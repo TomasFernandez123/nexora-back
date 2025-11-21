@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, SortOrder } from 'mongoose';
 import { Post } from './schemas/post.schema';
@@ -6,6 +6,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { QueryPostsDto } from './dto/query-post.dto';
 import { CreateCommentDto } from './dto/create-comment';
 import { User } from 'src/users/schemas/user.schema';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
 export class PostsService {
@@ -157,6 +158,31 @@ export class PostsService {
         post.commentCount = (post.commentCount || 0) + 1;
         await post.save();
 
+        return post.populate([
+            { path: 'author', select: 'username photo' },
+            { path: 'comments.author', select: 'username photo' }
+        ]);
+    }
+
+    async updateComment(postId: string, commentId: string, userId: string, dto: UpdateCommentDto) {
+        // Primero buscar SIN populate
+        const post = await this.postModel.findById(postId);
+        
+        if (!post) throw new NotFoundException('Post not found');
+
+        const comment: any = post.comments.find((c: any) => console.log(c._id.toString(), commentId));
+
+        if (!comment) throw new NotFoundException('Comment not found');
+
+        // Comparar el author como string (antes del populate es un ObjectId)
+        if (userId.toString() !== comment.author.toString()) {
+            throw new UnauthorizedException('You can only edit your own comments');
+        }
+
+        comment.text = dto.text;
+        await post.save();
+
+        // DESPUÉS hacer el populate para devolver
         return post.populate([
             { path: 'author', select: 'username photo' },
             { path: 'comments.author', select: 'username photo' }
