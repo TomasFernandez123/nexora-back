@@ -23,4 +23,9 @@ export class CreateUserDto {
 
     @IsOptional() @IsString()
     photo?: string;
+    
+    @IsOptional() @IsString()
+    role?: 'user' | 'admin';
+    
+
 }
