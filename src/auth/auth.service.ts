@@ -24,6 +24,10 @@ export class AuthService {
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch) throw new UnauthorizedException('Invalid credentials');
 
+        if(!user.isActive) {
+            throw new UnauthorizedException('User account is deactivated');
+        }
+
         const token = await this.generateToken(user.id, user.role);
 
         const { password: _, ...userData } = user.toObject();
