@@ -73,11 +73,13 @@ export class PostsService {
         const postsWithLimitedComments = posts.map(post => {
             const postObj = post.toObject();
             const totalComments = postObj.comments.length || 0;
-            const paginatedComments = postObj.comments
-                ?.slice(commentOffset, commentOffset + commentLimit)
-                .map(comment => ({
-                    ...comment
-                })) || [];
+
+            const sortedComments = [...postObj.comments].sort(
+                (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            const paginatedComments = sortedComments?.slice(commentOffset, commentOffset + commentLimit) || [];
+                
             
             return {
                 ...postObj,
@@ -105,7 +107,12 @@ export class PostsService {
 
         const postObj = post.toObject();
         const totalComments = postObj.comments.length || 0;
-        const paginatedComments = postObj.comments
+
+        const sortedComments = [...postObj.comments].sort(
+            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        const paginatedComments = sortedComments
             ?.slice(commentOffset, commentOffset + commentLimit) || [];
 
         return {
