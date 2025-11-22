@@ -78,8 +78,12 @@ export class UsersService {
     }
 
     async remove(id: string): Promise<User> {
-        const result = await this.userModel.findByIdAndUpdate(id, { isActive: false }, { new: true }).select('-password');
-        if (!result) throw new NotFoundException(`User with ID ${id} not found`);
-        return result;
+        // TODO: Si es true que cambie a false y si es false que cambie a true
+        const user = await this.userModel.findById(id);
+        if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+
+        const result = await this.userModel.findByIdAndUpdate(id, { isActive: !user.isActive }, { new: true }).select('-password');
+
+        return result!;
     }
 }
