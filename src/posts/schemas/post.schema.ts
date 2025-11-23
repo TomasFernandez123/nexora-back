@@ -32,12 +32,14 @@ export class Post extends Document {
       author: { type: Types.ObjectId, ref: 'User', required: true },
       text: { type: String, required: true },
       createdAt: { type: Date, default: Date.now },
+      edited: { type: Boolean, default: false }
     },
   ])
   comments: {
     author: Types.ObjectId;
     text: string;
     createdAt: Date;
+    edited: boolean;
   }[];
 
   @Prop({ default: 0 })

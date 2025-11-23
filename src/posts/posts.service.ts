@@ -7,6 +7,7 @@ import { QueryPostsDto } from './dto/query-post.dto';
 import { CreateCommentDto } from './dto/create-comment';
 import { User } from 'src/users/schemas/user.schema';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import e from 'express';
 
 @Injectable()
 export class PostsService {
@@ -159,6 +160,7 @@ export class PostsService {
             author: userId as any,
             text: dto.text,
             createdAt: new Date(),
+            edited: false
         };
 
         post.comments.push(newComment);
@@ -185,6 +187,7 @@ export class PostsService {
         }
 
         comment.text = dto.text;
+        comment.edited = true;
         await post.save();
 
         return post.populate([
