@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PostsModule } from './posts/posts.module';
 import { StatsModule } from './stats/stats.module';
+import { PerspectiveService } from './common/services/perspective/perspective.service';
 
 
 @Module({
@@ -22,6 +23,6 @@ import { StatsModule } from './stats/stats.module';
     StatsModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PerspectiveService],
 })
 export class AppModule {}

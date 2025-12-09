@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ValidateObjectIdPipe } from 'src/common/pipes/validate-object-id.pipe';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -11,10 +11,11 @@ import { buildResponse } from '../common/utils/build-response';
 import { CreateCommentDto } from './dto/create-comment';
 import { FileSizeFilter } from '../common/utils/file-size.filters';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { PerspectiveService } from 'src/common/services/perspective/perspective.service';
 
 @Controller('posts')
 export class PostsController {
-    constructor(private readonly postsService: PostsService) {}
+    constructor(private readonly postsService: PostsService, private readonly perspectiveService: PerspectiveService) {}
 
     @Get()
     async getAllPosts(@Query() query: QueryPostsDto) {
@@ -39,6 +40,14 @@ export class PostsController {
         const imageUrl = file?.path;
         const userId = req.user?.id;
         const isVideo = file?.mimetype?.startsWith('video/');
+        const analysis = await this.perspectiveService.analyzeText(dto.message + ' ' + dto.title);
+
+        if (analysis.toxicity > 0.75 || analysis.insult > 0.7) {
+            throw new BadRequestException(
+                'Your post seems harmful. Please rephrase it.'
+            );
+        }
+
         const result = await this.postsService.createPost({...dto, photo: imageUrl, mediaType: isVideo ? 'video' : 'image',}, userId);
         return buildResponse('Post created successfully', result);
     }
@@ -70,6 +79,15 @@ export class PostsController {
     @Post(':id/comments')
     async addComment(@Param('id', ValidateObjectIdPipe) id: string, @Body() dto: CreateCommentDto, @Req() req) {
         const userId = req.user.id;
+
+        const analysis = await this.perspectiveService.analyzeText(dto.text);
+
+        if (analysis.toxicity > 0.75 || analysis.insult > 0.7) {
+            throw new BadRequestException(
+                'Your comment seems harmful. Please rephrase it.'
+            );
+        }
+
         const post = await this.postsService.addComment(id, userId, dto);
         return buildResponse('Comment added successfully', post);
     }

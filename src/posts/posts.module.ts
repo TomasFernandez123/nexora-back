@@ -4,6 +4,7 @@ import { PostsService } from './posts.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './schemas/post.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
+import { PerspectiveService } from 'src/common/services/perspective/perspective.service';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
     ])
   ],
   controllers: [PostsController],
-  providers: [PostsService]
+  providers: [PostsService, PerspectiveService]
 })
 export class PostsModule {}

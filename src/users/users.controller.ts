@@ -1,4 +1,4 @@
-import { Controller, Body, Param, Delete, Patch, Get, Post, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Body, Param, Delete, Patch, Get, Post, Req, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,12 +8,13 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from './guards/role.guard';
 import { Roles } from './decorators/roles.decorator';
+import { PerspectiveService } from 'src/common/services/perspective/perspective.service';
 
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService, private readonly perspectiveService: PerspectiveService) {}
 
     @Get()
     @Roles('admin')
@@ -41,6 +42,14 @@ export class UsersController {
 
     @Post()
     async createUser(@Body() dto: CreateUserDto, @Req() req) {
+        const analysis = await this.perspectiveService.analyzeText(dto.name + ' ' + dto.lastName + ' ' + dto.description);
+        
+        if (analysis.toxicity > 0.75 || analysis.insult > 0.7) {
+            throw new BadRequestException(
+                'Your comment seems harmful. Please rephrase it.'
+            );
+        }
+
         const user = await this.usersService.create(dto);
         return buildResponse('User created successfully', user);
     }
