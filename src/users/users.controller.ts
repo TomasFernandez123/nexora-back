@@ -46,7 +46,7 @@ export class UsersController {
         
         if (analysis.toxicity > 0.75 || analysis.insult > 0.7) {
             throw new BadRequestException(
-                'Your comment seems harmful. Please rephrase it.'
+                'Your user seems harmful. Please rephrase it.'
             );
         }
 

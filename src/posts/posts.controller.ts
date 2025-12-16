@@ -97,6 +97,14 @@ export class PostsController {
     @Patch(':postId/comments/:commentId')
     async updateComment(@Param('postId', ValidateObjectIdPipe) postId: string, @Param('commentId', ValidateObjectIdPipe) commentId: string, @Body() dto: UpdateCommentDto, @Req() req) {
         const userId = req.user.id;
+        const analysis = await this.perspectiveService.analyzeText(dto.text);
+
+        if (analysis.toxicity > 0.75 || analysis.insult > 0.7) {
+            throw new BadRequestException(
+                'Your comment seems harmful. Please rephrase it.'
+            );
+        }
+        
         const post = await this.postsService.updateComment(postId, commentId, userId, dto);
         return buildResponse('Comment updated successfully', post);
     }

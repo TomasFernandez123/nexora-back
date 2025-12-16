@@ -7,7 +7,6 @@ import { QueryPostsDto } from './dto/query-post.dto';
 import { CreateCommentDto } from './dto/create-comment';
 import { User } from 'src/users/schemas/user.schema';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import e from 'express';
 
 @Injectable()
 export class PostsService {
