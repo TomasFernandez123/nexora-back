@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
@@ -8,82 +15,189 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-    async create(dto: CreateUserDto): Promise<Record<string, any>> {
-        const emailExists = await this.userModel.findOne({ email: dto.email });
-        const usernameExists = await this.userModel.findOne({ username: dto.username });
-        
-        if (emailExists && usernameExists) {
-            throw new ConflictException(`Email ${dto.email} and Username ${dto.username} are already in use`);
-        }
-        
-        if (emailExists) {
-            throw new ConflictException(`Email ${dto.email} is already in use`);
-        }
+  async create(dto: CreateUserDto): Promise<Record<string, unknown>> {
+    const emailExists = await this.userModel.findOne({ email: dto.email });
+    const usernameExists = await this.userModel.findOne({
+      username: dto.username,
+    });
 
-        if (usernameExists) {
-            throw new ConflictException(`Username ${dto.username} is already in use`);
-        }
-
-        const birthDate = new Date(dto.dateOfBirth);
-        if (isNaN(birthDate.getTime())) {
-            throw new BadRequestException(`Invalid date of birth: ${dto.dateOfBirth}`);
-        }
-
-        if (dto.password) {
-            dto.password = await bcrypt.hash(dto.password, 10);
-        }
-
-        const user = await this.userModel.create(dto);
-        
-        const { password, ...result } = user.toObject();
-        return result;
+    if (emailExists && usernameExists) {
+      throw new ConflictException(
+        `Email ${dto.email} and Username ${dto.username} are already in use`,
+      );
     }
 
-    async findAll(): Promise<Omit<User[], 'password'>> {
-        return this.userModel.find().select('-password');
+    if (emailExists) {
+      throw new ConflictException(`Email ${dto.email} is already in use`);
     }
 
-    async findById(id: string): Promise<Omit<User, 'password'>> {
-        const user = await this.userModel.findById(id).select('-password');
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-        return user;
+    if (usernameExists) {
+      throw new ConflictException(`Username ${dto.username} is already in use`);
     }
 
-    async findByEmailOrUsername(value: string): Promise<User | null> {
-        return this.userModel.findOne({
-            $or: [{email: value}, {username: value}],
-        });
+    const birthDate = new Date(dto.dateOfBirth);
+    if (isNaN(birthDate.getTime())) {
+      throw new BadRequestException(
+        `Invalid date of birth: ${dto.dateOfBirth}`,
+      );
     }
 
-    async update(id: string, dto: UpdateUserDto): Promise<Omit<User, 'password'>> {
-        const emailExists = await this.userModel.findOne({ email: dto.email });
-        if (emailExists && emailExists._id !== id) {
-            throw new ConflictException(`Email ${dto.email} is already in use`);
-        }
-
-        const usernameExists = await this.userModel.findOne({ username: dto.username });
-        if (usernameExists && usernameExists._id !== id) {
-            throw new ConflictException(`Username ${dto.username} is already in use`);
-        }
-
-        if (dto.password) {
-            dto.password = await bcrypt.hash(dto.password, 10);
-        }
-
-        const user = await this.userModel.findByIdAndUpdate(id, dto, { new: true }).select('-password');
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-        return user;
+    if (dto.password) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      dto.password = await bcrypt.hash(dto.password, 10);
     }
 
-    async remove(id: string): Promise<User> {
-        // TODO: Si es true que cambie a false y si es false que cambie a true
-        const user = await this.userModel.findById(id);
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    const user = await this.userModel.create(dto);
 
-        const result = await this.userModel.findByIdAndUpdate(id, { isActive: !user.isActive }, { new: true }).select('-password');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = user.toObject();
+    return result;
+  }
 
-        return result!;
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().select('-password');
+  }
+
+  async findById(id: string): Promise<Omit<User, 'password'>> {
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
+  async findByEmailOrUsername(value: string): Promise<User | null> {
+    return this.userModel.findOne({
+      $or: [{ email: value }, { username: value }],
+    });
+  }
+
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+  ): Promise<Omit<User, 'password'>> {
+    const emailExists = await this.userModel.findOne({ email: dto.email });
+    if (emailExists && emailExists._id !== id) {
+      throw new ConflictException(`Email ${dto.email} is already in use`);
     }
+
+    const usernameExists = await this.userModel.findOne({
+      username: dto.username,
+    });
+    if (usernameExists && usernameExists._id !== id) {
+      throw new ConflictException(`Username ${dto.username} is already in use`);
+    }
+
+    if (dto.password) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      dto.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .select('-password');
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
+  async remove(id: string): Promise<User> {
+    // TODO: Si es true que cambie a false y si es false que cambie a true
+    const user = await this.userModel.findById(id);
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+
+    const result = await this.userModel
+      .findByIdAndUpdate(id, { isActive: !user.isActive }, { new: true })
+      .select('-password');
+
+    return result!;
+  }
+
+  async follow(currentUserId: string, targetUserId: string): Promise<void> {
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('You cannot follow yourself');
+    }
+
+    const targetUser = await this.userModel.findById(targetUserId);
+    if (!targetUser)
+      throw new NotFoundException(`User with ID ${targetUserId} not found`);
+
+    const currentUser = await this.userModel.findById(currentUserId);
+    if (!currentUser)
+      throw new NotFoundException(`User with ID ${currentUserId} not found`);
+
+    const alreadyFollowing = currentUser.following.some(
+      (id) => id.toString() === targetUserId,
+    );
+
+    if (alreadyFollowing) {
+      throw new ConflictException('You are already following this user');
+    }
+
+    await this.userModel.findByIdAndUpdate(currentUserId, {
+      $addToSet: { following: targetUserId },
+    });
+
+    await this.userModel.findByIdAndUpdate(targetUserId, {
+      $addToSet: { followers: currentUserId },
+    });
+  }
+
+  async unfollow(currentUserId: string, targetUserId: string): Promise<void> {
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('You cannot unfollow yourself');
+    }
+
+    const targetUser = await this.userModel.findById(targetUserId);
+    if (!targetUser)
+      throw new NotFoundException(`User with ID ${targetUserId} not found`);
+
+    const currentUser = await this.userModel.findById(currentUserId);
+    if (!currentUser)
+      throw new NotFoundException(`User with ID ${currentUserId} not found`);
+
+    const isFollowing = currentUser.following.some(
+      (id) => id.toString() === targetUserId,
+    );
+
+    if (!isFollowing) {
+      throw new BadRequestException('You are not following this user');
+    }
+
+    await this.userModel.findByIdAndUpdate(currentUserId, {
+      $pull: { following: targetUserId },
+    });
+
+    await this.userModel.findByIdAndUpdate(targetUserId, {
+      $pull: { followers: currentUserId },
+    });
+  }
+
+  async getFollowers(userId: string): Promise<User[]> {
+    const user = await this.userModel
+      .findById(userId)
+      .populate('followers', '-password');
+    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+    return user.followers as unknown as User[];
+  }
+
+  async getFollowing(userId: string): Promise<User[]> {
+    const user = await this.userModel
+      .findById(userId)
+      .populate('following', '-password');
+    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+    return user.following as unknown as User[];
+  }
+
+  async getSuggestions(userId: string): Promise<User[]> {
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+
+    const followingIds = user.following.map((id) => id.toString());
+
+    return this.userModel
+      .find({
+        _id: { $nin: [userId, ...followingIds] },
+      })
+      .select('-password');
+  }
 }
