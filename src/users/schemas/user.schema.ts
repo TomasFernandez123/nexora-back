@@ -16,15 +16,21 @@ export class User extends Document {
   username: string;
 
   @Prop({
-    required: true,
+    required: false,
     minlength: 8,
     maxlength: 100,
     match: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$/,
   })
-  password: string;
+  password?: string;
 
-  @Prop({ required: true, type: Date })
-  dateOfBirth: Date;
+  @Prop({ default: 'local', enum: ['local', 'google', 'github'] })
+  provider: string;
+
+  @Prop({ required: false })
+  providerId?: string;
+
+  @Prop({ required: false, type: Date })
+  dateOfBirth?: Date;
 
   @Prop({ required: false, default: '' })
   description: string;

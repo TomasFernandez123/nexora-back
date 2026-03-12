@@ -5,6 +5,8 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { GithubStrategy } from './strategies/github.strategy';
 
 @Module({
     imports: [
@@ -16,7 +18,7 @@ import { JwtStrategy } from './jwt.strategy';
             signOptions: { expiresIn: '7m' },
         })
     ],
-    providers: [AuthService, JwtStrategy],
+    providers: [AuthService, JwtStrategy, GoogleStrategy, GithubStrategy],
     controllers: [AuthController],
 })
 export class AuthModule {}

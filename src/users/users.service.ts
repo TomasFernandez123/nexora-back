@@ -37,11 +37,13 @@ export class UsersService {
       throw new ConflictException(`Username ${dto.username} is already in use`);
     }
 
-    const birthDate = new Date(dto.dateOfBirth);
-    if (isNaN(birthDate.getTime())) {
-      throw new BadRequestException(
-        `Invalid date of birth: ${dto.dateOfBirth}`,
-      );
+    if (dto.dateOfBirth) {
+      const birthDate = new Date(dto.dateOfBirth);
+      if (isNaN(birthDate.getTime())) {
+        throw new BadRequestException(
+          `Invalid date of birth: ${dto.dateOfBirth}`,
+        );
+      }
     }
 
     if (dto.password) {
@@ -199,5 +201,68 @@ export class UsersService {
         _id: { $nin: [userId, ...followingIds] },
       })
       .select('-password');
+  }
+
+  async findOrCreateByProvider(profile: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+    provider: string;
+    providerId: string;
+  }): Promise<User> {
+    // Check if user already exists with this provider and providerId
+    let user = await this.userModel.findOne({
+      provider: profile.provider,
+      providerId: profile.providerId,
+    });
+
+    if (user) return user;
+
+    // Check if a user with the same email already exists
+    user = await this.userModel.findOne({ email: profile.email });
+
+    if (user) {
+      // Link the provider to the existing account
+      user.provider = profile.provider;
+      user.providerId = profile.providerId;
+      await user.save();
+      return user;
+    }
+
+    // Create a new user with a generated username
+    const baseUsername = profile.email.split('@')[0];
+    let username = baseUsername;
+    let counter = 0;
+    while (await this.userModel.findOne({ username })) {
+      counter++;
+      username = `${baseUsername}${counter}`;
+    }
+
+    const newUser = await this.userModel.create({
+      name: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      username,
+      photo: profile.picture ?? 'https://res.cloudinary.com/dlmkbhszg/image/upload/v1/nexora/defaults/default-avatar.png',
+      provider: profile.provider,
+      providerId: profile.providerId,
+    });
+
+    return newUser;
+  }
+
+  async setPasswordIfMissing(userId: string, plainPassword: string): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+
+    if (user.password) {
+      throw new BadRequestException(
+        'Password already configured for this account',
+      );
+    }
+
+    user.password = await bcrypt.hash(plainPassword, 10);
+    await user.save();
   }
 }

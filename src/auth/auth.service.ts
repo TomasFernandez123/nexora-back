@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -12,6 +12,10 @@ export class AuthService {
     ) {}
 
     async register(dto: CreateUserDto) {
+        if (!dto.password) {
+            throw new BadRequestException('Password is required for local registration');
+        }
+
         const user = await this.usersService.create(dto);
 
         return { user };
@@ -20,6 +24,15 @@ export class AuthService {
     async login(emailOrUsername: string, password: string) {
         const user = await this.usersService.findByEmailOrUsername(emailOrUsername);
         if(!user) throw new UnauthorizedException('Invalid credentials');
+
+        // Social accounts do not have password hashes, so local login must be blocked.
+        if (!user.password) {
+            if (user.provider && user.provider !== 'local') {
+                throw new UnauthorizedException(`This account uses ${user.provider} login. Use social sign-in.`);
+            }
+
+            throw new UnauthorizedException('This account has no password configured');
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch) throw new UnauthorizedException('Invalid credentials');
@@ -49,5 +62,24 @@ export class AuthService {
     async refreshToken(userId: string, role: string) {
         const token = await this.generateToken(userId, role);
         return { token };
+    }
+
+    async socialLogin(providerUser: {
+        email: string;
+        firstName: string;
+        lastName: string;
+        picture?: string;
+        provider: string;
+        providerId: string;
+    }) {
+        const user = await this.usersService.findOrCreateByProvider(providerUser);
+        const token = await this.generateToken(user.id, user.role);
+        const { password: _, ...userData } = user.toObject();
+        return { user: userData, token };
+    }
+
+    async setPassword(userId: string, password: string) {
+        await this.usersService.setPasswordIfMissing(userId, password);
+        return { success: true };
     }
 }
