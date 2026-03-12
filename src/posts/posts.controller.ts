@@ -12,6 +12,7 @@ import { CreateCommentDto } from './dto/create-comment';
 import { FileSizeFilter } from '../common/utils/file-size.filters';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PerspectiveService } from 'src/common/services/perspective/perspective.service';
+import type { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
 
 @Controller('posts')
 export class PostsController {
@@ -20,6 +21,12 @@ export class PostsController {
     @Get()
     async getAllPosts(@Query() query: QueryPostsDto) {
         return this.postsService.getAllPosts(query);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('following')
+    async getFollowingPosts(@Req() req: AuthenticatedRequest, @Query() query: QueryPostsDto) {
+        return this.postsService.getFollowingPosts(req.user.id, query);
     }
 
     @Get(':id')

@@ -24,31 +24,7 @@ export class PostsService {
         ]);
     }
 
-    async getAllPosts(query: QueryPostsDto) {
-        const filters: any = {};
-
-        if (!query.showDeleted) {
-            filters.deleted = false;
-        }
-
-        if (query.userId) {
-            filters.author = query.userId;
-        }
-
-        if (query.userName) {
-            const users = await this.userModel.find({
-                username: { $regex: query.userName, $options: 'i' },
-            }).select('_id');
-
-            const userIds = users.map((u) => (u._id as mongoose.Types.ObjectId).toString());
-
-            if (userIds.length > 0) {
-                filters.author = { $in: userIds };
-            } else {
-                return { total: 0, limit: Number(query.limit) || 10, offset: 0, posts: [] };
-            }
-        }
-
+    private async buildPaginatedPostsResponse(filters: any, query: QueryPostsDto) {
         const sort: Record<string, SortOrder> =
             query.sort === 'likes'
             ? { likeCount: -1 }
@@ -79,8 +55,7 @@ export class PostsService {
             );
 
             const paginatedComments = sortedComments?.slice(commentOffset, commentOffset + commentLimit) || [];
-                
-            
+
             return {
                 ...postObj,
                 comments: paginatedComments,
@@ -99,6 +74,82 @@ export class PostsService {
         });
 
         return { total, limit, offset, posts: postsWithLimitedComments };
+    }
+
+    async getAllPosts(query: QueryPostsDto) {
+        const filters: any = {};
+
+        if (!query.showDeleted) {
+            filters.deleted = false;
+        }
+
+        if (query.userId) {
+            filters.author = query.userId;
+        }
+
+        if (query.userName) {
+            const users = await this.userModel.find({
+                username: { $regex: query.userName, $options: 'i' },
+            }).select('_id');
+
+            const userIds = users.map((u) => (u._id as mongoose.Types.ObjectId).toString());
+
+            if (userIds.length > 0) {
+                filters.author = { $in: userIds };
+            } else {
+                return { total: 0, limit: Number(query.limit) || 10, offset: 0, posts: [] };
+            }
+        }
+
+        return this.buildPaginatedPostsResponse(filters, query);
+    }
+
+    async getFollowingPosts(currentUserId: string, query: QueryPostsDto) {
+        const currentUser = await this.userModel.findById(currentUserId).select('following');
+        if (!currentUser) throw new NotFoundException(`User with ID ${currentUserId} not found`);
+
+        const followingIds = (currentUser.following || []).map((id) => id.toString());
+        const limit = Number(query.limit) || 10;
+        const offset = Number(query.offset) || 0;
+
+        if (followingIds.length === 0) {
+            return { total: 0, limit, offset, posts: [] };
+        }
+
+        let candidateAuthorIds = [...followingIds];
+
+        if (query.userId) {
+            if (!candidateAuthorIds.includes(query.userId)) {
+                return { total: 0, limit, offset, posts: [] };
+            }
+
+            candidateAuthorIds = [query.userId];
+        }
+
+        if (query.userName) {
+            const users = await this.userModel
+                .find({
+                    _id: { $in: candidateAuthorIds },
+                    username: { $regex: query.userName, $options: 'i' },
+                })
+                .select('_id');
+
+            candidateAuthorIds = users.map((u) => (u._id as mongoose.Types.ObjectId).toString());
+
+            if (candidateAuthorIds.length === 0) {
+                return { total: 0, limit, offset, posts: [] };
+            }
+        }
+
+        const filters: any = {
+            author: { $in: candidateAuthorIds },
+        };
+
+        if (!query.showDeleted) {
+            filters.deleted = false;
+        }
+
+        return this.buildPaginatedPostsResponse(filters, query);
     }
 
     async getPostById(id: string, commentLimit = 10, commentOffset = 0) {
