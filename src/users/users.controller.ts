@@ -7,6 +7,9 @@ import {
   Get,
   Post,
   Req,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
   ForbiddenException,
   BadRequestException,
   UseGuards,
@@ -46,6 +49,34 @@ export class UsersController {
   async getSuggestions(@Req() req: Auth.AuthenticatedRequest) {
     const suggestions = await this.usersService.getSuggestions(req.user.id);
     return buildResponse('Suggestions retrieved successfully', suggestions);
+  }
+
+  @Get('me/followers')
+  async getMyFollowers(
+    @Req() req: Auth.AuthenticatedRequest,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const followers = await this.usersService.getMyFollowers(
+      req.user.id,
+      page,
+      limit,
+    );
+    return buildResponse('Followers retrieved successfully', followers);
+  }
+
+  @Get('me/following')
+  async getMyFollowing(
+    @Req() req: Auth.AuthenticatedRequest,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const following = await this.usersService.getMyFollowing(
+      req.user.id,
+      page,
+      limit,
+    );
+    return buildResponse('Following retrieved successfully', following);
   }
 
   @Get(':id')
@@ -120,12 +151,14 @@ export class UsersController {
   }
 
   @Get(':id/followers')
+  @Roles('admin')
   async getFollowers(@Param('id', ValidateObjectIdPipe) id: string) {
     const followers = await this.usersService.getFollowers(id);
     return buildResponse('Followers retrieved successfully', followers);
   }
 
   @Get(':id/following')
+  @Roles('admin')
   async getFollowing(@Param('id', ValidateObjectIdPipe) id: string) {
     const following = await this.usersService.getFollowing(id);
     return buildResponse('Following retrieved successfully', following);

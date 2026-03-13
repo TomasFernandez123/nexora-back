@@ -17,6 +17,25 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+  private readonly relationProjection =
+    'name lastName username photo description isActive';
+
+  private getPagination(page: number, limit: number) {
+    if (page < 1) {
+      throw new BadRequestException('Page must be greater than or equal to 1');
+    }
+
+    if (limit < 1 || limit > 50) {
+      throw new BadRequestException('Limit must be between 1 and 50');
+    }
+
+    return {
+      page,
+      limit,
+      skip: (page - 1) * limit,
+    };
+  }
+
   async create(dto: CreateUserDto): Promise<Record<string, unknown>> {
     const emailExists = await this.userModel.findOne({ email: dto.email });
     const usernameExists = await this.userModel.findOne({
@@ -264,5 +283,53 @@ export class UsersService {
 
     user.password = await bcrypt.hash(plainPassword, 10);
     await user.save();
+  }
+
+  async getMyFollowers(userId: string, page = 1, limit = 20) {
+    const pagination = this.getPagination(page, limit);
+
+    const [items, total] = await Promise.all([
+      this.userModel
+        .find({ following: userId })
+        .select(this.relationProjection)
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .sort({ createdAt: -1 }),
+      this.userModel.countDocuments({ following: userId }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page: pagination.page,
+        limit: pagination.limit,
+        total,
+        totalPages: Math.ceil(total / pagination.limit),
+      },
+    };
+  }
+
+  async getMyFollowing(userId: string, page = 1, limit = 20) {
+    const pagination = this.getPagination(page, limit);
+
+    const [items, total] = await Promise.all([
+      this.userModel
+        .find({ followers: userId })
+        .select(this.relationProjection)
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .sort({ createdAt: -1 }),
+      this.userModel.countDocuments({ followers: userId }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page: pagination.page,
+        limit: pagination.limit,
+        total,
+        totalPages: Math.ceil(total / pagination.limit),
+      },
+    };
   }
 }
